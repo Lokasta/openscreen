@@ -9,6 +9,7 @@ export interface TimelineImportResult {
 	speedRegions: SpeedRegion[];
 	format: TimelineFormat;
 	clipCount: number;
+	sourceVideoPath: string | null;
 }
 
 function detectFormat(content: string, fileName: string): TimelineFormat | null {
@@ -43,6 +44,7 @@ export function importTimeline(content: string, fileName: string): TimelineImpor
 			speedRegions: result.speedRegions,
 			format: "edl",
 			clipCount: result.editCount,
+			sourceVideoPath: null,
 		};
 	}
 
@@ -52,6 +54,7 @@ export function importTimeline(content: string, fileName: string): TimelineImpor
 		speedRegions: result.speedRegions,
 		format: "fcpxml",
 		clipCount: result.clipCount,
+		sourceVideoPath: result.sourceVideoPath,
 	};
 }
 

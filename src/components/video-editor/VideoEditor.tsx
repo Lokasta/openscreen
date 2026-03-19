@@ -455,11 +455,6 @@ export default function VideoEditor() {
 	}, [applyLoadedProject]);
 
 	const handleImportTimeline = useCallback(async () => {
-		if (!videoPath) {
-			toast.error("Load a video first before importing a timeline");
-			return;
-		}
-
 		const result = await window.electronAPI.openTimelineFilePicker();
 
 		if (result.canceled) return;
@@ -472,6 +467,27 @@ export default function VideoEditor() {
 		const imported = importTimeline(result.content, result.fileName);
 		if (!imported) {
 			toast.error("Unrecognized timeline format. Supported: EDL (.edl), FCP XML (.xml)");
+			return;
+		}
+
+		// FCP XML can carry the source video path — load it if no video is loaded
+		if (imported.sourceVideoPath && !videoPath) {
+			try {
+				await window.electronAPI.setCurrentVideoPath(imported.sourceVideoPath);
+				const sourcePath = imported.sourceVideoPath;
+				setVideoSourcePath(sourcePath);
+				setVideoPath(toFileUrl(sourcePath));
+				setWebcamVideoSourcePath(null);
+				setWebcamVideoPath(null);
+				setCurrentProjectPath(null);
+				setLastSavedSnapshot(null);
+				setLoading(false);
+				setError(null);
+			} catch {
+				toast.error("Could not load video from timeline. Load a video manually first.");
+			}
+		} else if (!videoPath && !imported.sourceVideoPath) {
+			toast.error("Load a video first before importing a timeline");
 			return;
 		}
 

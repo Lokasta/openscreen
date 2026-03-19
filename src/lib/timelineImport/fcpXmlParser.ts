@@ -13,6 +13,7 @@ export interface FcpXmlImportResult {
 	speedRegions: SpeedRegion[];
 	timebase: number;
 	clipCount: number;
+	sourceVideoPath: string | null;
 }
 
 const VALID_SPEEDS: PlaybackSpeed[] = [0.25, 0.5, 0.75, 1.25, 1.5, 1.75, 2];
@@ -55,16 +56,24 @@ export function parseFcpXml(xmlContent: string): FcpXmlImportResult {
 	const parser = new DOMParser();
 	const doc = parser.parseFromString(xmlContent, "text/xml");
 
+	const emptyResult: FcpXmlImportResult = {
+		trimRegions: [],
+		speedRegions: [],
+		timebase: 30,
+		clipCount: 0,
+		sourceVideoPath: null,
+	};
+
 	// Check for parse errors
 	const parseError = doc.querySelector("parsererror");
 	if (parseError) {
-		return { trimRegions: [], speedRegions: [], timebase: 30, clipCount: 0 };
+		return emptyResult;
 	}
 
 	// Find the sequence — FCP 7 XML uses <xmeml><sequence>
 	const sequence = doc.querySelector("sequence");
 	if (!sequence) {
-		return { trimRegions: [], speedRegions: [], timebase: 30, clipCount: 0 };
+		return emptyResult;
 	}
 
 	const sequenceTimebase = getTimebase(sequence);
@@ -72,7 +81,19 @@ export function parseFcpXml(xmlContent: string): FcpXmlImportResult {
 	// Find all clipitems in video tracks
 	const clipItems = sequence.querySelectorAll("media > video > track > clipitem");
 	if (clipItems.length === 0) {
-		return { trimRegions: [], speedRegions: [], timebase: sequenceTimebase, clipCount: 0 };
+		return { ...emptyResult, timebase: sequenceTimebase };
+	}
+
+	// Extract source video path from the first <file> element with a <pathurl>
+	let sourceVideoPath: string | null = null;
+	const fileEl = sequence.querySelector("media > video > track > clipitem > file > pathurl");
+	if (fileEl?.textContent) {
+		const rawUrl = fileEl.textContent.trim();
+		try {
+			sourceVideoPath = decodeURIComponent(new URL(rawUrl).pathname);
+		} catch {
+			sourceVideoPath = rawUrl.replace(/^file:\/\//, "");
+		}
 	}
 
 	const clips: FcpClipItem[] = [];
@@ -145,5 +166,6 @@ export function parseFcpXml(xmlContent: string): FcpXmlImportResult {
 		speedRegions,
 		timebase: sequenceTimebase,
 		clipCount: clips.length,
+		sourceVideoPath,
 	};
 }
