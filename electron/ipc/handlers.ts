@@ -747,6 +747,34 @@ export function registerIpcHandlers(
 		return { success: true };
 	});
 
+	ipcMain.handle("open-timeline-file-picker", async () => {
+		try {
+			const result = await dialog.showOpenDialog({
+				title: "Import Timeline (EDL / FCP XML)",
+				filters: [
+					{ name: "Timeline Files", extensions: ["edl", "xml", "fcpxml"] },
+					{ name: "EDL Files", extensions: ["edl"] },
+					{ name: "XML Files", extensions: ["xml", "fcpxml"] },
+					{ name: "All Files", extensions: ["*"] },
+				],
+				properties: ["openFile"],
+			});
+
+			if (result.canceled || result.filePaths.length === 0) {
+				return { success: false, canceled: true };
+			}
+
+			const filePath = result.filePaths[0];
+			const content = await fs.readFile(filePath, "utf-8");
+			const fileName = path.basename(filePath);
+
+			return { success: true, content, fileName, path: filePath };
+		} catch (error) {
+			console.error("Failed to open timeline file:", error);
+			return { success: false, message: "Failed to open timeline file", error: String(error) };
+		}
+	});
+
 	ipcMain.handle("get-platform", () => {
 		return process.platform;
 	});

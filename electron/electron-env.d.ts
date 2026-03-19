@@ -133,6 +133,15 @@ interface Window {
 		saveShortcuts: (shortcuts: unknown) => Promise<{ success: boolean; error?: string }>;
 		hudOverlayHide: () => void;
 		hudOverlayClose: () => void;
+		openTimelineFilePicker: () => Promise<{
+			success: boolean;
+			content?: string;
+			fileName?: string;
+			path?: string;
+			canceled?: boolean;
+			message?: string;
+			error?: string;
+		}>;
 		setMicrophoneExpanded: (expanded: boolean) => void;
 		setHasUnsavedChanges: (hasChanges: boolean) => void;
 		onRequestSaveBeforeClose: (callback: () => Promise<boolean> | boolean) => () => void;

@@ -118,6 +118,9 @@ contextBridge.exposeInMainWorld("electronAPI", {
 	setMicrophoneExpanded: (expanded: boolean) => {
 		ipcRenderer.send("hud:setMicrophoneExpanded", expanded);
 	},
+	openTimelineFilePicker: () => {
+		return ipcRenderer.invoke("open-timeline-file-picker");
+	},
 	setHasUnsavedChanges: (hasChanges: boolean) => {
 		ipcRenderer.send("set-has-unsaved-changes", hasChanges);
 	},

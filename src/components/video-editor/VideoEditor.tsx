@@ -19,6 +19,7 @@ import {
 } from "@/lib/exporter";
 import type { ProjectMedia } from "@/lib/recordingSession";
 import { matchesShortcut } from "@/lib/shortcuts";
+import { importTimeline } from "@/lib/timelineImport";
 import { getAspectRatioValue, getNativeAspectRatioValue } from "@/utils/aspectRatioUtils";
 import { ExportDialog } from "./ExportDialog";
 import PlaybackControls from "./PlaybackControls";
@@ -452,6 +453,59 @@ export default function VideoEditor() {
 
 		toast.success(`Project loaded from ${result.path}`);
 	}, [applyLoadedProject]);
+
+	const handleImportTimeline = useCallback(async () => {
+		if (!videoPath) {
+			toast.error("Load a video first before importing a timeline");
+			return;
+		}
+
+		const result = await window.electronAPI.openTimelineFilePicker();
+
+		if (result.canceled) return;
+
+		if (!result.success || !result.content || !result.fileName) {
+			toast.error(result.message || "Failed to open timeline file");
+			return;
+		}
+
+		const imported = importTimeline(result.content, result.fileName);
+		if (!imported) {
+			toast.error("Unrecognized timeline format. Supported: EDL (.edl), FCP XML (.xml)");
+			return;
+		}
+
+		if (imported.trimRegions.length === 0 && imported.speedRegions.length === 0) {
+			toast.info(
+				`Parsed ${imported.clipCount} clips but found no trims or speed changes to import`,
+			);
+			return;
+		}
+
+		// Merge imported regions with existing ones
+		const newTrimRegions = imported.trimRegions.map((r, i) => ({
+			...r,
+			id: `trim-${nextTrimIdRef.current + i}`,
+		}));
+		nextTrimIdRef.current += newTrimRegions.length;
+
+		const newSpeedRegions = imported.speedRegions.map((r, i) => ({
+			...r,
+			id: `speed-${nextSpeedIdRef.current + i}`,
+		}));
+		nextSpeedIdRef.current += newSpeedRegions.length;
+
+		pushState((prev) => ({
+			trimRegions: [...prev.trimRegions, ...newTrimRegions],
+			speedRegions: [...prev.speedRegions, ...newSpeedRegions],
+		}));
+
+		const parts: string[] = [];
+		if (newTrimRegions.length > 0) parts.push(`${newTrimRegions.length} trim(s)`);
+		if (newSpeedRegions.length > 0) parts.push(`${newSpeedRegions.length} speed change(s)`);
+		const formatLabel = imported.format === "edl" ? "EDL" : "FCP XML";
+		toast.success(`Imported from ${formatLabel}: ${parts.join(", ")}`);
+	}, [videoPath, pushState]);
 
 	useEffect(() => {
 		const removeLoadListener = window.electronAPI.onMenuLoadProject(handleLoadProject);
@@ -1508,6 +1562,7 @@ export default function VideoEditor() {
 							onAnnotationDelete={handleAnnotationDelete}
 							onSaveProject={handleSaveProject}
 							onLoadProject={handleLoadProject}
+							onImportTimeline={handleImportTimeline}
 							selectedSpeedId={selectedSpeedId}
 							selectedSpeedValue={
 								selectedSpeedId

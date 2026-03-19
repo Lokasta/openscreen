@@ -120,6 +120,7 @@ interface SettingsPanelProps {
 	gifOutputDimensions?: { width: number; height: number };
 	onSaveProject?: () => void;
 	onLoadProject?: () => void;
+	onImportTimeline?: () => void;
 	onExport?: () => void;
 	selectedAnnotationId?: string | null;
 	annotationRegions?: AnnotationRegion[];
@@ -185,6 +186,7 @@ export function SettingsPanel({
 	gifOutputDimensions = { width: 1280, height: 720 },
 	onSaveProject,
 	onLoadProject,
+	onImportTimeline,
 	onExport,
 	selectedAnnotationId,
 	annotationRegions = [],
@@ -1094,6 +1096,16 @@ export function SettingsPanel({
 						Save Project
 					</Button>
 				</div>
+
+				<Button
+					type="button"
+					variant="outline"
+					onClick={onImportTimeline}
+					className="w-full h-8 text-[10px] font-medium gap-1.5 bg-white/5 border-white/10 text-slate-300 hover:bg-white/10 mb-2"
+				>
+					<Upload className="w-3.5 h-3.5" />
+					Import Timeline (EDL / XML)
+				</Button>
 
 				<Button
 					data-testid={getTestId("export-button")}

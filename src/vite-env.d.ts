@@ -116,6 +116,15 @@ interface Window {
 		onMenuLoadProject: (callback: () => void) => () => void;
 		onMenuSaveProject: (callback: () => void) => () => void;
 		onMenuSaveProjectAs: (callback: () => void) => () => void;
+		openTimelineFilePicker: () => Promise<{
+			success: boolean;
+			content?: string;
+			fileName?: string;
+			path?: string;
+			canceled?: boolean;
+			message?: string;
+			error?: string;
+		}>;
 		setMicrophoneExpanded: (expanded: boolean) => void;
 		setHasUnsavedChanges: (hasChanges: boolean) => void;
 		onRequestSaveBeforeClose: (callback: () => Promise<boolean> | boolean) => () => void;
