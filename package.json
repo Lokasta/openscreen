@@ -20,6 +20,7 @@
 		"prepare": "husky"
 	},
 	"dependencies": {
+		"@biomejs/cli-darwin-arm64": "^2.4.8",
 		"@fix-webm-duration/fix": "^1.0.1",
 		"@pixi/filter-drop-shadow": "^5.2.0",
 		"@radix-ui/react-accordion": "^1.2.12",
@@ -70,6 +71,7 @@
 		"@types/uuid": "^10.0.0",
 		"@vitejs/plugin-react": "^4.2.1",
 		"autoprefixer": "^10.4.21",
+		"dmg-license": "^1.0.11",
 		"electron": "^39.2.7",
 		"electron-builder": "^26.7.0",
 		"electron-icon-builder": "^2.0.1",
